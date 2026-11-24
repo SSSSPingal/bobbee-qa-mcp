@@ -1,0 +1,19 @@
+{
+  "name": "bobbee-qa-mcp",
+  "private": true,
+  "version": "0.1.0",
+  "description": "MCP pour créer des dossiers et préparer des données de test sur les envs éphémères Bobbee",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "login": "node cli.mjs login",
+    "logout": "node cli.mjs logout",
+    "status": "node cli.mjs status"
+  },
+  "dependencies": {
+    "amazon-cognito-identity-js": "^6.3.22",
+    "graphql": "^16.11.0"
+  }
+}
