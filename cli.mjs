@@ -32,7 +32,7 @@ async function main(command) {
     const email = await rl.question(`Email Bobbee (dev)${authStatus().email ? ` [${authStatus().email}]` : ''} : `);
     rl.close();
     const address = await login(email.trim() || authStatus().email, await askHidden('Mot de passe : '));
-    console.log(`Connecté en ${address}. Le MCP bobbee-qa peut viser les envs éphémères.`);
+    console.log(`Connecté en ${address}. Le MCP bobbee-test-data peut viser les envs éphémères.`);
   } else if (command === 'logout') {
     await logout();
     console.log('Déconnecté.');

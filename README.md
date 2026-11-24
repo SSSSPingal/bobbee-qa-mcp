@@ -1,4 +1,4 @@
-# bobbee-qa-mcp
+# bobbee-test-data
 
 Serveur MCP pour Claude Code : créer des dossiers et préparer des données de test sur un **env éphémère** Bobbee
 (`mp-1234.feature.bobbee.co`). Jamais dev, staging ni prod.
@@ -13,7 +13,7 @@ avec accès à `OSS360/app-bobbee`, car l'introspection est coupée sur les serv
 Une seule commande, sans cloner :
 
 ```bash
-claude mcp add --scope user bobbee-qa -- npx -y github:SSSSPingal/bobbee-qa-mcp
+claude mcp add --scope user bobbee-test-data -- npx -y github:SSSSPingal/bobbee-test-data
 ```
 
 ## Connexion
@@ -23,7 +23,7 @@ ton compte Bobbee dev (il sert aussi aux éphémères), et c'est tout. Même cho
 
 Le mot de passe ne passe jamais par la conversation : la page est servie par le MCP sur ta machine (127.0.0.1,
 lien à usage unique, 5 min). Il ne sert qu'à calculer une preuve SRP, comme la page de connexion de l'app : il n'est
-ni envoyé ni stocké. Seul le refresh token est gardé, dans `~/.bobbee-qa-mcp/session.json`. Comptes SSO non gérés.
+ni envoyé ni stocké. Seul le refresh token est gardé, dans `~/.bobbee-test-data/session.json`. Comptes SSO non gérés.
 
 En secours, depuis un clone du repo : `npm install` puis `npm run login` (saisie dans le terminal).
 

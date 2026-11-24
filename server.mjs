@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Serveur MCP « bobbee-qa » (stdio, sans SDK) : créer des dossiers et préparer des données de test sur un env éphémère Bobbee.
+// Serveur MCP « bobbee-test-data » (stdio, sans SDK) : créer des dossiers et préparer des données de test sur un env éphémère Bobbee.
 import { createInterface } from 'node:readline';
 import { authStatus } from './lib/auth.mjs';
 import { checkEnv } from './lib/env.mjs';
@@ -158,7 +158,7 @@ const send = (msg) => process.stdout.write(`${JSON.stringify({ jsonrpc: '2.0', .
 
 async function handle({ method, params }) {
   if (method === 'initialize') {
-    return { protocolVersion: params?.protocolVersion ?? '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'bobbee-qa', version: '0.1.0' }, instructions: INSTRUCTIONS };
+    return { protocolVersion: params?.protocolVersion ?? '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'bobbee-test-data', version: '0.1.0' }, instructions: INSTRUCTIONS };
   }
   if (method === 'ping') return {};
   if (method === 'tools/list') {
