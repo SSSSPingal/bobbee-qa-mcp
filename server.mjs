@@ -4,6 +4,7 @@ import { createInterface } from 'node:readline';
 import { authStatus } from './lib/auth.mjs';
 import { checkEnv } from './lib/env.mjs';
 import { gql } from './lib/gql.mjs';
+import { startLoginPage } from './lib/loginPage.mjs';
 import { makerFirmOptions, makerFirms, makerJob, startMakerCreation } from './lib/maker.mjs';
 import { ACCOUNTING_TYPES, MAX_BATCH, MAX_PERIODS, OFFERS, TAX_REGIMES, VAT_OPTIONS, VAT_SYSTEMS } from './lib/maker.helpers.mjs';
 import { searchSchema } from './lib/schema.mjs';
@@ -13,7 +14,7 @@ console.log = (...args) => console.error(...args);
 
 const INSTRUCTIONS = `Outils pour préparer des données de test sur un env éphémère Bobbee (mp-1234.feature.bobbee.co), jamais dev, staging ni prod.
 Tout passe par l'API GraphQL de l'app avec le compte de l'utilisateur : ses droits, rien de plus.
-- Pas connecté : demander à l'utilisateur de lancer « npm run login » dans le dossier bobbee-qa-mcp (jamais de mot de passe dans la conversation).
+- Pas connecté : appeler bobbee_login, qui ouvre une page de connexion dans le navigateur. Ne jamais demander le mot de passe dans la conversation.
 - Créer un dossier : maker_firms → maker_options → maker_create → maker_job.
 - Préparer des données : chercher les mutations avec bobbee_schema (schéma de la branche de l'éphémère, l'introspection est coupée),
   puis bobbee_graphql avec companyId = le dossier visé. Lire avant d'écrire (ids, plan comptable, exercice).
@@ -63,10 +64,18 @@ function graphql({ env, query, variables, companyId, accountingFirmId, subUserId
 
 const TOOLS = {
   bobbee_status: {
-    description: 'État de la connexion à Bobbee (compte, date). Si non connecté : demander de lancer « npm run login » dans le dossier bobbee-qa-mcp.',
+    description: 'État de la connexion à Bobbee (compte, date). Si non connecté : bobbee_login.',
     inputSchema: { type: 'object', properties: {} },
     annotations: { readOnlyHint: true },
     handler: authStatus,
+  },
+  bobbee_login: {
+    description: "Ouvre dans le navigateur une page locale de connexion à Bobbee (compte dev, sert aux éphémères), valable 5 min. "
+      + "Donner l'adresse renvoyée à l'utilisateur si le navigateur ne s'ouvre pas, puis vérifier avec bobbee_status quand il dit avoir fini. "
+      + 'Sert aussi à changer de compte.',
+    inputSchema: { type: 'object', properties: {} },
+    annotations: { readOnlyHint: false, destructiveHint: false },
+    handler: startLoginPage,
   },
   bobbee_schema: {
     description: "Cherche dans le schéma GraphQL de Bobbee, lu sur GitHub à la branche du ticket de l'éphémère (feature|bugfix|hotfix/mp-1234/…). "

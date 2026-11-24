@@ -7,20 +7,25 @@ Tout passe par l'API GraphQL de l'app, **avec ton compte** : tu ne peux rien fai
 
 ## Installation
 
-Prérequis : Node 20+, et la CLI GitHub (`gh auth login`) avec accès à `OSS360/app-bobbee`. Elle sert à lire le
-schéma GraphQL de la branche de l'éphémère, car l'introspection est coupée sur les serveurs Bobbee.
+Prérequis : Node 20+. Pour la recherche dans le schéma GraphQL (`bobbee_schema`) : la CLI GitHub (`gh auth login`)
+avec accès à `OSS360/app-bobbee`, car l'introspection est coupée sur les serveurs Bobbee.
+
+Une seule commande, sans cloner :
 
 ```bash
-git clone <url de ce repo> bobbee-qa-mcp
-cd bobbee-qa-mcp
-npm install
-npm run login          # email + mot de passe de ton compte Bobbee dev (sert aussi aux éphémères)
-claude mcp add --scope user bobbee-qa -- node "<chemin absolu>/bobbee-qa-mcp/server.mjs"
+claude mcp add --scope user bobbee-qa -- npx -y github:SSSSPingal/bobbee-qa-mcp
 ```
 
-Le mot de passe ne sert qu'à calculer une preuve SRP (comme la page de connexion de l'app) : il n'est ni envoyé ni
-stocké. Seul le refresh token est gardé, dans `~/.bobbee-qa-mcp/session.json`. Session expirée : relancer
-`npm run login`. Comptes SSO non gérés.
+## Connexion
+
+Dans Claude Code, demande « connecte-moi à Bobbee ». Une page s'ouvre dans ton navigateur : email + mot de passe de
+ton compte Bobbee dev (il sert aussi aux éphémères), et c'est tout. Même chose quand la session expire.
+
+Le mot de passe ne passe jamais par la conversation : la page est servie par le MCP sur ta machine (127.0.0.1,
+lien à usage unique, 5 min). Il ne sert qu'à calculer une preuve SRP, comme la page de connexion de l'app : il n'est
+ni envoyé ni stocké. Seul le refresh token est gardé, dans `~/.bobbee-qa-mcp/session.json`. Comptes SSO non gérés.
+
+En secours, depuis un clone du repo : `npm install` puis `npm run login` (saisie dans le terminal).
 
 ## Utilisation
 
@@ -34,7 +39,7 @@ Claude cherche les mutations dans le schéma de la branche, te récapitule le pl
 
 | Outil | Rôle |
 | --- | --- |
-| `bobbee_status` | Connexion en cours |
+| `bobbee_status`, `bobbee_login` | Connexion en cours, page de connexion dans le navigateur |
 | `maker_firms`, `maker_options` | Cabinets, utilisateurs rattachables, plans comptables de référence |
 | `maker_create`, `maker_job` | Création de dossiers (comme l'écran « Dossiers clients ») et suivi |
 | `bobbee_schema` | Recherche dans le schéma GraphQL de la branche de l'éphémère |

@@ -4,6 +4,14 @@
   "version": "0.1.0",
   "description": "MCP pour créer des dossiers et préparer des données de test sur les envs éphémères Bobbee",
   "type": "module",
+  "bin": {
+    "bobbee-qa-mcp": "server.mjs"
+  },
+  "files": [
+    "server.mjs",
+    "cli.mjs",
+    "lib/"
+  ],
   "engines": {
     "node": ">=20"
   },
