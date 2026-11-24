@@ -7,6 +7,7 @@ import { gql } from './lib/gql.mjs';
 import { startLoginPage } from './lib/loginPage.mjs';
 import { makerFirmOptions, makerFirms, makerJob, startMakerCreation } from './lib/maker.mjs';
 import { ACCOUNTING_TYPES, MAX_BATCH, MAX_PERIODS, OFFERS, TAX_REGIMES, VAT_OPTIONS, VAT_SYSTEMS } from './lib/maker.helpers.mjs';
+import { searchOperations } from './lib/operations.mjs';
 import { searchSchema } from './lib/schema.mjs';
 
 // stdout est réservé au protocole.
@@ -14,11 +15,21 @@ console.log = (...args) => console.error(...args);
 
 const INSTRUCTIONS = `Outils pour préparer des données de test sur un env éphémère Bobbee (mp-1234.feature.bobbee.co), jamais dev, staging ni prod.
 Tout passe par l'API GraphQL de l'app avec le compte de l'utilisateur : ses droits, rien de plus.
-- Pas connecté : appeler bobbee_login, qui ouvre une page de connexion dans le navigateur. Ne jamais demander le mot de passe dans la conversation.
+- Dès le début de la session, appeler bobbee_status ; si non connecté, bobbee_login tout de suite (l'utilisateur se connecte pendant
+  que tu prépares le plan). Ne jamais demander le mot de passe dans la conversation.
 - Créer un dossier : maker_firms → maker_options → maker_create → maker_job.
-- Préparer des données : chercher les mutations avec bobbee_schema (schéma de la branche de l'éphémère, l'introspection est coupée),
-  puis bobbee_graphql avec companyId = le dossier visé. Lire avant d'écrire (ids, plan comptable, exercice).
-- Avant une série d'écritures, récapituler le plan (quoi, dans quel dossier) et obtenir l'accord de l'utilisateur. Rien n'est transactionnel.`;
+- Préparer des données : partir de l'appel du front (bobbee_operations, ex. « UpsertInvoiceProduct »), qui donne la forme qui marche ;
+  vérifier types et enums avec bobbee_schema (GraphQL + Prisma, à la branche de l'éphémère, l'introspection est coupée) ;
+  puis bobbee_graphql avec companyId = le dossier visé. Lire avant d'écrire (ids, plan comptable, exercice). Lancer en parallèle
+  les lectures indépendantes.
+- Avant une série d'écritures, récapituler le plan (quoi, dans quel dossier) et obtenir l'accord de l'utilisateur. Rien n'est transactionnel.
+Pièges connus :
+- Une erreur métier générique (ex. « Erreur lors de la mise à jour du produit ») cache souvent une valeur d'enum invalide :
+  vérifier l'enum Prisma (quantityType d'un produit : QUANTITY, MASS, LENGTH, AREA, VOLUME ; pas WEIGHT).
+- Les upsert créent avec un id vide (where: { id: "" }).
+- Produit (upsertProduct) : le compte de vente est obligatoire.
+- Date de fin (expiration) d'un compte : renameSubAccountableAccount ; updateAccountableAccount renvoie null sans rien écrire.
+- Un champ racine à null sans erreur = échec avalé côté back : relire pour vérifier.`;
 
 const ENV = { type: 'string', description: 'Env éphémère du ticket, ex. mp-1234' };
 
@@ -53,13 +64,16 @@ const VALUES = {
 };
 
 // Appel GraphQL libre ; en-têtes de contexte comme dans l'app (dossier sélectionné, cabinet).
-function graphql({ env, query, variables, companyId, accountingFirmId, subUserId }) {
+// Un champ racine à null sans erreur est signalé : plusieurs résolveurs avalent l'erreur et renvoient null.
+async function graphql({ env, query, variables, companyId, accountingFirmId, subUserId }) {
   const headers = {
     ...(companyId !== undefined ? { 'X-companyId': companyId } : {}),
     ...(accountingFirmId ? { 'X-accountingFirmId': accountingFirmId } : {}),
     ...(subUserId ? { 'X-subUserId': subUserId } : {}),
   };
-  return gql(checkEnv(env), query, variables ?? {}, { headers });
+  const data = await gql(checkEnv(env), query, variables ?? {}, { headers });
+  const nulls = Object.keys(data).filter((k) => data[k] === null);
+  return { data, ...(nulls.length ? { warnings: nulls.map((k) => `${k} a renvoyé null sans erreur : échec probablement avalé côté back, relire pour vérifier`) } : {}) };
 }
 
 const TOOLS = {
@@ -80,8 +94,9 @@ const TOOLS = {
   bobbee_schema: {
     description: "Cherche dans le schéma GraphQL de Bobbee, lu sur GitHub à la branche du ticket de l'éphémère (feature|bugfix|hotfix/mp-1234/…). "
       + 'Recherche par nom (tous les mots, ex. « stockaccountrule », « inventory », « UpsertProductInput »), à défaut dans le texte des définitions. '
-      + 'Renvoie les champs de Query/Mutation et les types correspondants. Les types générés par Prisma (…WhereInput, …CreateInput) ne sont pas dans le dépôt. '
-      + "Demande la CLI gh connectée avec un accès à OSS360/app-bobbee.",
+      + 'Renvoie les champs de Query/Mutation, les types GraphQL et les enums et modèles Prisma (kind « prisma enum » / « prisma model », '
+      + 'ex. InvoiceProduct_quantityType). Les inputs et mutations CRUD générés par Prisma (updateInvoiceProduct, …WhereInput) ne sont pas '
+      + 'dans le dépôt : voir leur usage avec bobbee_operations. Demande la CLI gh connectée avec un accès à OSS360/app-bobbee.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -93,6 +108,23 @@ const TOOLS = {
     },
     annotations: { readOnlyHint: true },
     handler: searchSchema,
+  },
+  bobbee_operations: {
+    description: "Opérations GraphQL du front Bobbee (vue/src/**/*.gql) à la branche de l'éphémère : la forme d'appel réelle de l'app, "
+      + 'à reprendre telle quelle dans bobbee_graphql. Recherche dans le chemin du fichier (tous les mots, ex. « UpsertInvoiceProduct », '
+      + '« tag create », « subaccountableaccount ») ; renvoie le contenu des 8 premiers fichiers, les autres chemins en plus. '
+      + 'Un fragment (...XxxFields) se cherche par son nom de fichier.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        env: ENV,
+        search: { type: 'string', description: 'Mots à chercher dans le chemin du .gql' },
+        branch: { type: 'string', description: 'Branche à lire, si plusieurs correspondent au ticket' },
+      },
+      required: ['env', 'search'],
+    },
+    annotations: { readOnlyHint: true },
+    handler: searchOperations,
   },
   bobbee_graphql: {
     description: "Exécute une requête ou une mutation GraphQL sur un env éphémère Bobbee, avec le compte et les droits de l'utilisateur. "
@@ -121,8 +153,13 @@ const TOOLS = {
     handler: makerFirms,
   },
   maker_options: {
-    description: 'Pour un cabinet : utilisateurs rattachables, plans comptables de référence et offre par défaut. Seuls les cabinets de grille EXPERT sont gérés.',
-    inputSchema: { type: 'object', properties: { env: ENV, firmId: { type: 'string' } }, required: ['env', 'firmId'] },
+    description: 'Pour un cabinet : plans comptables de référence, offre par défaut, nombre d\'utilisateurs, et les utilisateurs rattachables '
+      + 'qui correspondent à userSearch (email, prénom ou nom ; aucun sans recherche). Seuls les cabinets de grille EXPERT sont gérés.',
+    inputSchema: {
+      type: 'object',
+      properties: { env: ENV, firmId: { type: 'string' }, userSearch: { type: 'string', description: 'Filtre des utilisateurs à rattacher' } },
+      required: ['env', 'firmId'],
+    },
     annotations: { readOnlyHint: true },
     handler: makerFirmOptions,
   },

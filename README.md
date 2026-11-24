@@ -35,21 +35,26 @@ Dans Claude Code, décris ce que tu veux, par exemple :
 > un produit OK (compte avec règle « Variation de stocks » et contrepartie de classe 3), un produit sans compte,
 > un compte sans règle de variation, une variation sans contrepartie, une contrepartie clôturée.
 
-Claude cherche les mutations dans le schéma de la branche, te récapitule le plan, puis l'exécute après ton accord.
+Claude reprend les appels du front et vérifie le schéma de la branche, te récapitule le plan, puis l'exécute après ton
+accord. Les pièges déjà rencontrés sont dans les consignes du MCP (`INSTRUCTIONS` dans `server.mjs`) : en ajouter un
+quand il revient, pour que tout le monde en profite.
 
 | Outil | Rôle |
 | --- | --- |
 | `bobbee_status`, `bobbee_login` | Connexion en cours, page de connexion dans le navigateur |
-| `maker_firms`, `maker_options` | Cabinets, utilisateurs rattachables, plans comptables de référence |
+| `maker_firms`, `maker_options` | Cabinets, plans comptables de référence, utilisateurs rattachables (recherche) |
 | `maker_create`, `maker_job` | Création de dossiers (comme l'écran « Dossiers clients ») et suivi |
-| `bobbee_schema` | Recherche dans le schéma GraphQL de la branche de l'éphémère |
-| `bobbee_graphql` | Requête ou mutation libre, dans le contexte d'un dossier (`companyId`) ou d'un cabinet |
+| `bobbee_operations` | Opérations GraphQL du front (`vue/src/**/*.gql`) à la branche de l'éphémère, prêtes à rejouer |
+| `bobbee_schema` | Schéma de la branche : définitions GraphQL, enums et modèles Prisma |
+| `bobbee_graphql` | Requête ou mutation libre, dans le contexte d'un dossier (`companyId`) ou d'un cabinet ; signale un retour null |
 
 ## Limites
 
 - Rien n'est transactionnel : un enchaînement qui échoue au milieu laisse des données partielles.
 - Pas d'upload de fichiers (FEC, pièces) ni de connexion bancaire pour l'instant.
-- Les types générés par Prisma (`…WhereInput`, `…CreateInput`) ne sont pas dans le dépôt : `bobbee_schema` ne les
-  trouve pas.
+- Les inputs et mutations CRUD générés par Prisma (`updateInvoiceProduct`, `…WhereInput`) ne sont pas dans le dépôt :
+  `bobbee_schema` ne les trouve pas, leur usage se lit dans `bobbee_operations`.
+- `bobbee_operations` cherche dans le chemin des `.gql`, pas dans leur contenu.
+- Pas d'accès aux logs backend de l'éphémère (CloudWatch) : une erreur générique ne dit pas sa cause.
 - Création de dossiers : cabinets de grille EXPERT seulement. Les tâches vivent en mémoire du MCP.
 - Certaines mutations envoient des mails (invitation d'un utilisateur…).
