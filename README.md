@@ -10,11 +10,15 @@ Tout passe par l'API GraphQL de l'app, **avec ton compte** : tu ne peux rien fai
 Prérequis : Node 20+. Pour la recherche dans le schéma GraphQL (`bobbee_schema`) : la CLI GitHub (`gh auth login`)
 avec accès à `OSS360/app-bobbee`, car l'introspection est coupée sur les serveurs Bobbee.
 
-Le MCP est livré comme plugin Claude Code. Dans Claude Code :
+Le MCP est livré comme plugin Claude Code. Dans un terminal (marche aussi pour Claude Desktop, dont la zone de
+message ne propose pas `/plugin`) :
 
-```text
-/plugin install bobbee-test-data --marketplace SSSSPingal/bobbee-test-data
+```bash
+claude plugin install bobbee-test-data --marketplace SSSSPingal/bobbee-test-data
 ```
+
+Ou dans Claude Code en terminal : `/plugin install bobbee-test-data --marketplace SSSSPingal/bobbee-test-data`.
+Puis ouvrir une nouvelle conversation (ou `/reload-plugins`).
 
 Sur une version plus ancienne de Claude Code, en deux temps : `/plugin marketplace add SSSSPingal/bobbee-test-data`,
 puis `/plugin install bobbee-test-data@bobbee`.
