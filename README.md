@@ -10,11 +10,20 @@ Tout passe par l'API GraphQL de l'app, **avec ton compte** : tu ne peux rien fai
 Prérequis : Node 20+. Pour la recherche dans le schéma GraphQL (`bobbee_schema`) : la CLI GitHub (`gh auth login`)
 avec accès à `OSS360/app-bobbee`, car l'introspection est coupée sur les serveurs Bobbee.
 
-Une seule commande, sans cloner :
+Le MCP est livré comme plugin Claude Code. Dans Claude Code :
 
-```bash
-claude mcp add --scope user bobbee-test-data -- npx -y github:SSSSPingal/bobbee-test-data
+```text
+/plugin install bobbee-test-data --marketplace SSSSPingal/bobbee-test-data
 ```
+
+Sur une version plus ancienne de Claude Code, en deux temps : `/plugin marketplace add SSSSPingal/bobbee-test-data`,
+puis `/plugin install bobbee-test-data@bobbee`.
+
+**Mises à jour automatiques** : une fois, dans `/plugin`, onglet Marketplaces, choisir `bobbee` et activer
+l'auto-update. Claude Code récupère alors les nouvelles versions au démarrage (désactivé par défaut hors marketplaces
+d'Anthropic). Sans ça : `/plugin marketplace update bobbee`.
+
+Si tu l'avais installé avant via `npx` : `claude mcp remove bobbee-test-data --scope user`, pour ne pas l'avoir en double.
 
 ## Connexion
 
@@ -58,3 +67,11 @@ quand il revient, pour que tout le monde en profite.
 - Pas d'accès aux logs backend de l'éphémère (CloudWatch) : une erreur générique ne dit pas sa cause.
 - Création de dossiers : cabinets de grille EXPERT seulement. Les tâches vivent en mémoire du MCP.
 - Certaines mutations envoient des mails (invitation d'un utilisateur…).
+
+## Publier une nouvelle version
+
+1. `npm install` puis `npm run build` : régénère `dist/server.mjs`, le serveur regroupé en un fichier que lance le plugin
+   (le plugin n'installe pas de `node_modules`).
+2. Monter `version` dans `.claude-plugin/plugin.json` (et `package.json`) : **sans changement de version, les postes
+   déjà installés ne récupèrent pas la mise à jour**.
+3. Committer `dist/` avec le reste, puis pousser sur `main`.

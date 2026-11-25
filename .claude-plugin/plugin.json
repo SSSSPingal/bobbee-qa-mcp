@@ -1,0 +1,13 @@
+{
+  "name": "bobbee-test-data",
+  "version": "0.2.0",
+  "description": "MCP pour créer des dossiers et préparer des données de test sur les envs éphémères Bobbee",
+  "author": { "name": "SSSSPingal" },
+  "repository": "https://github.com/SSSSPingal/bobbee-test-data",
+  "mcpServers": {
+    "bobbee-test-data": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/dist/server.mjs"]
+    }
+  }
+}

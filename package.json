@@ -1,7 +1,7 @@
 {
   "name": "bobbee-test-data",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP pour créer des dossiers et préparer des données de test sur les envs éphémères Bobbee",
   "type": "module",
   "bin": {
@@ -18,10 +18,14 @@
   "scripts": {
     "login": "node cli.mjs login",
     "logout": "node cli.mjs logout",
-    "status": "node cli.mjs status"
+    "status": "node cli.mjs status",
+    "build": "esbuild server.mjs --bundle --minify --platform=node --target=node20 --format=esm --outfile=dist/server.mjs --legal-comments=eof --banner:js=\"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);\""
   },
   "dependencies": {
     "amazon-cognito-identity-js": "^6.3.22",
     "graphql": "^16.11.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.10"
   }
 }

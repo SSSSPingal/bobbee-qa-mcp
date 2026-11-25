@@ -1,0 +1,11 @@
+{
+  "name": "bobbee",
+  "owner": { "name": "SSSSPingal" },
+  "plugins": [
+    {
+      "name": "bobbee-test-data",
+      "source": "./",
+      "description": "MCP pour créer des dossiers et préparer des données de test sur les envs éphémères Bobbee"
+    }
+  ]
+}
