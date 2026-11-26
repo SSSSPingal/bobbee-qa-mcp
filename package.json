@@ -1,7 +1,7 @@
 {
   "name": "bobbee-test-data",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "MCP pour créer des dossiers et préparer des données de test sur les envs éphémères Bobbee",
   "type": "module",
   "bin": {

@@ -52,6 +52,13 @@ Claude reprend les appels du front et vérifie le schéma de la branche, te réc
 accord. Les pièges déjà rencontrés sont dans les consignes du MCP (`INSTRUCTIONS` dans `server.mjs`) : en ajouter un
 quand il revient, pour que tout le monde en profite.
 
+### Depuis un ticket : `/test-data MP-1234`
+
+Le skill lit le ticket et son AT (connecteur Atlassian de Claude, sinon colle le ticket), puis le diff de la branche
+(`gh`). Il en déduit les cas à tester et propose un plan : par cas, les données, le dossier, les opérations et le
+résultat attendu. Il l'exécute après ton accord et finit par un récapitulatif pour le testeur. Il ne modifie jamais
+le ticket.
+
 | Outil | Rôle |
 | --- | --- |
 | `bobbee_status`, `bobbee_login` | Connexion en cours, page de connexion dans le navigateur |
