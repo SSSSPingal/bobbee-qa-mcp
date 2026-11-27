@@ -68,6 +68,12 @@ le ticket.
 | `bobbee_schema` | Schéma de la branche : définitions GraphQL, enums et modèles Prisma |
 | `bobbee_graphql` | Requête ou mutation libre, dans le contexte d'un dossier (`companyId`) ou d'un cabinet ; signale un retour null |
 
+## Dépannage
+
+**Erreur d'authentification, ou les outils ne répondent plus** : la session a expiré. Demande « connecte-moi à Bobbee »
+dans Claude Code et reconnecte-toi sur la page qui s'ouvre. En secours, depuis un clone du repo : `npm run login`.
+`bobbee_status` indique si une session est active.
+
 ## Limites
 
 - Rien n'est transactionnel : un enchaînement qui échoue au milieu laisse des données partielles.
